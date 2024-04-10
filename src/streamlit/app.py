@@ -3,6 +3,7 @@ import pandas as pd
 import plotly.express as px
 import os
 import mlflow
+from sklearn.metrics import f1_score
 
 # Import data
 PATH = r"C:\Users\thiba\Documents\Projets data\202402_NLP_emotions\data"
@@ -11,12 +12,12 @@ fichier = "text_test.csv"
 
 # Import labels
 target_labels = {
-    0: "sadness",
-    1: "joy",
-    2: "love",
-    3: "anger",
-    4: "fear",
-    5: "surprise",
+    0: "Triste",
+    1: "Joyeux.se",
+    2: "Amoureux.se",
+    3: "En colère",
+    4: "Apeuré.ée",
+    5: "Surpris.e",
 }
 
 # import model from registry
@@ -54,7 +55,7 @@ st.sidebar.write(
 
 # Titre
 st.markdown(
-    """# 🔎 Analyse de sentiment sur tweets
+    """## 🔎 Analyse de sentiments sur les réseaux sociaux (tweets)
 """
 )
 
@@ -65,7 +66,6 @@ with cell:
     choix_mode = st.radio(
         "Choisir un mode de prédiction :",
         [
-            "A partir d'un fichier csv",
             "A partir d'un échantillon de test",
             "Ecrire un tweet (en anglais)",
         ],
@@ -77,19 +77,13 @@ with cell_2:
     if choix_mode is None:
         st.caption("(Veuillez sélectionner une option ci-dessus.)")
 
-    elif choix_mode == "A partir d'un fichier au format csv":
-        file_input = st.file_uploader("Choisir un fichier .csv", type="csv")
-        if file_input is not None:
-            # Can be used wherever a "file-like" object is accepted:
-            input_df = pd.read_csv(file_input)
-            st.write(input_df)
-
     # Code pour la prédiction à partir d'un échantillon
     elif choix_mode == "A partir d'un échantillon de test":
         liste_echantillons = os.listdir(os.path.join(PATH, "test_samples"))
         test_sample = st.selectbox(
             "Choisir un échantillon dans la liste", liste_echantillons, index=None
         )
+        st.caption("NB : ces données n'ont pas servi pour l'entraînement du modèle.")
 
         if test_sample is None:
             st.empty()
@@ -100,16 +94,25 @@ with cell_2:
             with open(filepath, "r") as f:
                 pass
             df = pd.read_csv(filepath, index_col=0)
+            df["label"] = df["label"].astype("int")
 
             # Test on sample
             pred = model.predict(df["text"])
-            df["Prédiction"] = pred
+            df["pred"] = pred
+
+            # Score de prédiction F1
+            pred_score = f1_score(df["label"], pred, average="weighted")
 
             # Prepare data for graphs
             df_count_true = df["label"].value_counts().sort_index()
-            df_count_pred = df["Prédiction"].value_counts()
+            df_count_true = df_count_true.rename("nb_reel")
+
+            df_count_pred = df["pred"].value_counts()
+            df_count_pred = df_count_pred.rename("nb_pred")
+
             df_count = pd.concat([df_count_true, df_count_pred], axis=1)
-            df_count = df_count.rename({"label": "Réel"}, axis=1)
+            #            st.dataframe(df_count)
+
             df_count["Sentiment"] = df_count.index
             df_count["Sentiment"] = df_count["Sentiment"].replace(target_labels)
 
@@ -127,13 +130,12 @@ with cell_2:
 
             # 2ème métrique
             cell2 = l1_col2.container(border=True)
-            score_prediction = "XXX %"
-            cell2.metric("Justesse de la prédiction", f"{score_prediction}")
+            cell2.metric("Score de prédiction (F1-score)", f"{pred_score:.1%}")
 
             # graphique radar
             fig = px.line_polar(
                 df_count,
-                r="Prédiction",
+                r="nb_pred",
                 theta="Sentiment",
                 line_close=True,
                 title="Prédictions par sentiment (en nombre de tweets)",
@@ -145,7 +147,7 @@ with cell_2:
             fig2 = px.bar(
                 df_count,
                 x="Sentiment",
-                y=["Réel", "Prédiction"],
+                y=["nb_pred", "nb_reel"],
                 title="Nombre de tweets par sentiment : comparaison réel/prédiction",
                 text_auto=True,
                 barmode="group",
@@ -171,11 +173,39 @@ with cell_2:
     # Code pour la prédiction à partir de la saisie manuelle d'un tweet
     else:
         text_input = st.text_area(
-            "Tweet à analyser", "Write your tweet in english here"
+            "Ecrire un tweet et cliquer sur 'Prédiction'",
+            value="Example : Streamlit is so cool",
+            max_chars=140,
         )
 
         st.write(f"You wrote {len(text_input)} characters.")
 
+        if st.button("Prédiction"):
+
+            cell_3 = st.container(border=True)
+
+            with cell_3:
+
+                # import dans un df
+                df3 = pd.DataFrame({"text": text_input}, index=[0])
+                # Prédiction à partir du modèle (à partir d'une série et pas d'un df)
+                pred = model.predict(df3["text"])
+
+                target_emoji = {
+                    0: "Triste :cry:",
+                    1: "Joyeux.se :joy:",
+                    2: "Amoureux.se :heart_eyes:",
+                    3: "En colère :persevere:",
+                    4: "Apeuré.ée :fearful:",
+                    5: "Surpris.e :astonished:",
+                }
+
+                target_label = target_emoji[int(pred)]
+
+                st.title(f"{target_label}")
+
+        else:
+            st.caption("Ecrire votre tweet et cliquer sur Prédire")
 
 # @st.cache_data
 # def load_data():

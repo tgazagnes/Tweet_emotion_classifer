@@ -1,4 +1,4 @@
 pre-commit
 plotly.express==0.4.1
-streamlit
-mlflow==2.9.2
+streamlit==1.29.0
+mlflow

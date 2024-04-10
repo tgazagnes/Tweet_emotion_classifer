@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+import random
 
 PATH = r"C:\Users\thiba\Documents\Projets data\202402_NLP_emotions\data"
 
@@ -12,7 +13,8 @@ if __name__ == "__main__":
 
     for i in range(3):
         title = "Echantillon_de_test_" + str(i) + ".csv"
-        df_sample = df.sample(frac=0.2, random_state=(12 * i))
+        # create samples of different size
+        df_sample = df.sample(frac=random.uniform(0, 1), random_state=(12 * i))
 
         # Enregistrement
         df_sample.to_csv(os.path.join(PATH, "test_samples", title))

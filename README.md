@@ -1,7 +1,18 @@
-Project Name
-==============================
+# Analyse de sentiments sur les réseaux sociaux (MLflow -> Streamlit)
 
-This repo is a Starting Pack for DS projects. You can rearrange the structure to make it fits your project.
+## Motivation
+
+Ce projet vise à entraîner un modèle de classification de texte sur la base de tweets afin d'analyser le sentiment principal qui s'en dégage.
+Pour entraîner et choisir un modèle pertinent, j'ai utilisé le framework [mlflow](https://github.com/mlflow) qui permet de tracker et comparer les expérimentations successives pour retenir le meilleur modèle. L'interface pour tester les prédictions du modèle a été développée sur [streamlit](https://github.com/streamlit) qui est mon favori du moment.
+
+Watch [this YouTube video](https://youtu.be/2wEbOmsV028) for a simple
+demonstration:
+
+[![](resources/demo.png)](https://youtu.be/2wEbOmsV028)
+
+
+
+## References
 
 Project Organization
 ------------

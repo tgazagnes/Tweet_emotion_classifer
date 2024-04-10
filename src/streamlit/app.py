@@ -26,8 +26,7 @@ st.sidebar.write("**Analyse de sentiment à partir de tweets (en anglais)**")
 st.sidebar.write("")
 st.sidebar.write(
     """
-    Dataset : [Nidula Elgiriyewithana]\
-        (https://www.kaggle.com/datasets/nelgiriyewithana/emotions)
+    Dataset : [Kaggle](https://www.kaggle.com/datasets/nelgiriyewithana/emotions)
 
     Stack : 
 
@@ -48,7 +47,7 @@ st.sidebar.write(
 
 # Titre
 st.markdown(
-    """# 🔎 Analyse de sentiment sur les réseaux sociaux (tweets)
+    """# 🔎 Analyse de sentiment sur tweets
 """
 )
 
@@ -68,7 +67,6 @@ with cell:
 
 cell_2 = st.container()
 with cell_2:
-
     if choix_mode is None:
         st.caption("(Veuillez sélectionner une option ci-dessus.)")
 
@@ -83,67 +81,83 @@ with cell_2:
     elif choix_mode == "A partir d'un échantillon de test":
         liste_echantillons = os.listdir(os.path.join(PATH, "test_samples"))
         test_sample = st.selectbox(
-            "Choisir un échantillon dans la liste", liste_echantillons
+            "Choisir un échantillon dans la liste", liste_echantillons, index=None
         )
 
-        # check if filepath
-        filepath = os.path.join(PATH, "test_samples", test_sample)
-        assert os.path.isfile(filepath)
-        with open(filepath, "r") as f:
-            pass
-        df = pd.read_csv(filepath, index_col=0)
+        if test_sample is None:
+            st.empty()
+        else:
+            # check if filepath
+            filepath = os.path.join(PATH, "test_samples", test_sample)
+            assert os.path.isfile(filepath)
+            with open(filepath, "r") as f:
+                pass
+            df = pd.read_csv(filepath, index_col=0)
 
-        # Random à changer pour la pred
-        df["Prédiction"] = np.random.randint(0, 6, len(df))
+            # Random à changer pour la pred
+            df["Prédiction"] = np.random.randint(0, 6, len(df))
 
-        df_count_true = df["label"].value_counts().sort_index()
-        df_count_pred = df["Prédiction"].value_counts()
-        df_count = pd.concat([df_count_true, df_count_pred], axis=1)
-        df_count = df_count.rename({"label": "Réel"}, axis=1)
-        df_count["Sentiment"] = df_count.index
-        df_count["Sentiment"] = df_count["Sentiment"].replace(target_labels)
+            df_count_true = df["label"].value_counts().sort_index()
+            df_count_pred = df["Prédiction"].value_counts()
+            df_count = pd.concat([df_count_true, df_count_pred], axis=1)
+            df_count = df_count.rename({"label": "Réel"}, axis=1)
+            df_count["Sentiment"] = df_count.index
+            df_count["Sentiment"] = df_count["Sentiment"].replace(target_labels)
 
-        # Ligne 1 : 2 cellules avec les indicateurs clés en haut de page
-        l1_col1, l1_col2 = st.columns(2)
+            # Ligne 1 : 2 cellules avec les indicateurs clés en haut de page
+            l1_col1, l1_col2 = st.columns(2)
 
-        # Pour avoir la bordure, il faut nester un st.container dans chaque colonne
+            # Pour avoir la bordure, il faut nester un st.container dans chaque colonne
 
-        # 1ère métrique
-        cell1 = l1_col1.container(border=True)
-        # Trick pour séparer les milliers
-        nb_tweets = len(df)
-        nb_tweets = f"{nb_tweets:,.0f}".replace(",", " ")
-        cell1.metric("Nombre de tweets analysés", f"{nb_tweets}")
+            # 1ère métrique
+            cell1 = l1_col1.container(border=True)
+            # Trick pour séparer les milliers
+            nb_tweets = len(df)
+            nb_tweets = f"{nb_tweets:,.0f}".replace(",", " ")
+            cell1.metric("Nombre de tweets analysés", f"{nb_tweets}")
 
-        # 2ème métrique
-        cell2 = l1_col2.container(border=True)
-        score_prediction = "XXX %"
-        cell2.metric("Justesse de la prédiction", f"{score_prediction}")
+            # 2ème métrique
+            cell2 = l1_col2.container(border=True)
+            score_prediction = "XXX %"
+            cell2.metric("Justesse de la prédiction", f"{score_prediction}")
 
-        fig2 = px.bar(
-            df_count,
-            x="Sentiment",
-            y=["Réel", "Prédiction"],
-            title="Répartition des tweets par sentiment",
-            text_auto=True,
-            barmode="group",
-        )
-        fig2.update_traces(textposition="inside")
-        fig2.update_layout(
-            autosize=True,
-            uniformtext_minsize=10,
-            uniformtext_mode="hide",
-            xaxis_title="Sentiment",
-            yaxis_title="Nombre de tweets",
-        )
+            # graphique radar
+            fig = px.line_polar(
+                df_count,
+                r="Prédiction",
+                theta="Sentiment",
+                line_close=True,
+                title="Prédictions par sentiment (en nombre de tweets)",
+            )
+            fig.update_traces(fill="toself")
+            st.plotly_chart(fig, use_container_width=True)
 
-        # Affichage du graphique
-        st.plotly_chart(fig2, use_container_width=True)
+            # graphique à barres réel vs prédiction
+            fig2 = px.bar(
+                df_count,
+                x="Sentiment",
+                y=["Réel", "Prédiction"],
+                title="Nombre de tweets par sentiment : comparaison réel/prédiction",
+                text_auto=True,
+                barmode="group",
+            )
+            fig2.update_traces(textposition="inside")
+            fig2.update_layout(
+                autosize=True,
+                uniformtext_minsize=10,
+                uniformtext_mode="hide",
+                xaxis_title="Sentiment",
+                yaxis_title="Nombre de tweets",
+            )
 
-        # debug
-        st.dataframe(df_count)
-        # debug
-        st.dataframe(df)
+            # Affichage du graphique
+            st.plotly_chart(fig2, use_container_width=True)
+
+            with st.expander("Voir le détail : "):
+                # debug
+                # st.dataframe(df_count)
+                # debug
+                st.dataframe(df)
 
     # Code pour la prédiction à partir de la saisie manuelle d'un tweet
     else:

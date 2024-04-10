@@ -20,9 +20,6 @@ from sklearn.metrics import (
 
 # mlflow
 import mlflow
-
-# functions to create model wrapper and include preprocessing function
-from mlflow.pyfunc import PythonModel, PythonModelContext
 import logging
 
 
@@ -84,32 +81,8 @@ if __name__ == "__main__":
     X_train_r = vectorizer2.fit_transform(X_train_r)
     X_test_r = vectorizer2.transform(X_test_r)
 
-    ######################################
-
-    # Create a model wrapper to include the preprocessing step
-    # Source : https://learn.microsoft.com/en-us/azure\
-    #   /machine-learning/how-to-log-mlflow-models?view=azureml-api-2&tabs=wrapper
-
-    class ModelWrapper(PythonModel):
-        def __init__(self, model):
-            self.model = model
-
-        def predict(self, context: PythonModelContext, data):
-            data = vectorizer2.transform(data)
-            return self.model.predict(data)
-
-    ######################################
-
-    # Define a run name for this iteration of training.
-    # If not set, a unique name will be auto-generated.
-    run_name = "GBC_firstmodel"
-
-    # Define an artifact path that the model will be saved to.
-    artifact_path = "gbc"
-
     # Start mlflow run
-    with mlflow.start_run(run_name=run_name):
-
+    with mlflow.start_run():
         # GradientBoosting
         classifier = GradientBoostingClassifier(
             n_estimators=n_estimators, learning_rate=lr
@@ -139,29 +112,6 @@ if __name__ == "__main__":
         mlflow.log_metric("Precision", prec)
         mlflow.log_metric("Rappel", recall)
         mlflow.log_metric("F1 score", f1)
-
-        # Log encoder & model
-        #        vectorizer_path = "vectorizer.pkl"
-        #        joblib.dump(vectorizer2, vectorizer_path)
-        #        model_path = "gbclassifier.model"
-        #        classifier.save_model(model_path)
-
-        # record signature
-        # Model signature defines the expected format for model inputs and outputs
-        # including any additional parameters needed for inference.
-
-        signature = mlflow.models.infer_signature(X_test_r, y_pred_r)
-
-        # custom model to include preprocessing (vectorizer)
-        mlflow.pyfunc.log_model(
-            "GBClassifier",
-            python_model=ModelWrapper(classifier),
-            #                               artifacts = {
-            #                                   "vectorizer" : vectorizer_path,
-            #                                   "model" : model_path
-            #                               },
-            signature=signature,
-        )
 
         print("Score accuracy train : ", classifier.score(X_train_r, y_train_r))
         print("Score accuracy test : ", classifier.score(X_test_r, y_test_r))

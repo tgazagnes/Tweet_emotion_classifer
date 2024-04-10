@@ -6,7 +6,6 @@ import os
 PATH = r"C:\Users\thiba\Documents\Projets data\202402_NLP_emotions\data"
 
 if __name__ == "__main__":
-
     fichier = "text.csv"
     try:
         df = pd.read_csv(os.path.join(PATH, fichier), index_col=0)

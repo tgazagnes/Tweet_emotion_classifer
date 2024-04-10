@@ -1,0 +1,19 @@
+artifact_path: GBClassifier
+flavors:
+  python_function:
+    cloudpickle_version: 2.2.1
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.pyfunc.model
+    python_model: python_model.pkl
+    python_version: 3.11.7
+mlflow_version: 2.9.2
+model_size_bytes: 1034512
+model_uuid: 9e0b99ff274f476e8f2c973e241151ee
+run_id: feec81077302416db3255e6e723419d8
+signature:
+  inputs: '[{"type": "string", "name": "text"}]'
+  outputs: '[{"type": "long", "name": "label"}]'
+  params: null
+utc_time_created: '2024-04-10 09:55:35.873263'

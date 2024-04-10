@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/thiba/Documents/Projets%20data/202402_NLP_emotions/mlruns/572981606331160523/60bb7137e17e4f9992218d300874881d/artifacts
+end_time: 1712742664145
+entry_point_name: ''
+experiment_id: '572981606331160523'
+lifecycle_stage: active
+run_id: 60bb7137e17e4f9992218d300874881d
+run_name: GBC_firstmodel_2
+run_uuid: 60bb7137e17e4f9992218d300874881d
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1712742471861
+status: 4
+tags: []
+user_id: thiba

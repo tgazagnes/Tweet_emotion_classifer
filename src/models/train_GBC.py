@@ -1,6 +1,7 @@
 import warnings
 import sys
 import pandas as pd
+import os
 
 # preprocessing
 from sklearn.model_selection import train_test_split
@@ -20,7 +21,14 @@ from sklearn.metrics import (
 
 # mlflow
 import mlflow
+
+# functions to create model wrapper and include preprocessing function
+from mlflow.pyfunc import PythonModel, PythonModelContext
 import logging
+
+# Import data
+PATH = r"C:\Users\thiba\Documents\Projets data\202402_NLP_emotions\data"
+fichier = "text.csv"
 
 
 logging.basicConfig(level=logging.WARN)
@@ -39,9 +47,8 @@ if __name__ == "__main__":
     warnings.filterwarnings("ignore")
 
     # Data discovery
-    fichier = "./data/text.csv"
     try:
-        df = pd.read_csv(fichier, index_col=0)
+        df = pd.read_csv(os.path.join(PATH, fichier), index_col=0)
     except Exception as e:
         logger.exception("Unable to load the csv base", e)
 
@@ -62,8 +69,11 @@ if __name__ == "__main__":
     mlflow.set_experiment("NLP_classifier_1")
 
     # parameters
+    # learning rate
     lr = float(sys.argv[1]) if len(sys.argv) > 1 else 0.1
+    # nombre d'estimateurs
     n_estimators = int(sys.argv[2]) if len(sys.argv) > 1 else 100
+    # fraction du dataset d'entraînement
     frac = float(sys.argv[3]) if len(sys.argv) > 1 else 0.1
 
     # Réduction du jeu d'entraînement pour accélerer les tests
@@ -81,9 +91,31 @@ if __name__ == "__main__":
     X_train_r = vectorizer2.fit_transform(X_train_r)
     X_test_r = vectorizer2.transform(X_test_r)
 
-    # Start mlflow run
-    with mlflow.start_run():
+    ######################################
 
+    # Create a model wrapper to include the preprocessing step
+    # Source : https://learn.microsoft.com/en-us/azure\
+    #   /machine-learning/how-to-log-mlflow-models?view=azureml-api-2&tabs=wrapper
+
+    class ModelWrapper(PythonModel):
+        def __init__(self, model):
+            self.model = model
+
+        def predict(self, context: PythonModelContext, data):
+            data = vectorizer2.transform(data)
+            return self.model.predict(data)
+
+    ######################################
+
+    # Define a run name for this iteration of training.
+    # If not set, a unique name will be auto-generated.
+    run_name = "GBC_firstmodel_2"
+
+    # Define an artifact path that the model will be saved to.
+    artifact_path = "gbc"
+
+    # Start mlflow run
+    with mlflow.start_run(run_name=run_name):
         # GradientBoosting
         classifier = GradientBoostingClassifier(
             n_estimators=n_estimators, learning_rate=lr
@@ -113,6 +145,33 @@ if __name__ == "__main__":
         mlflow.log_metric("Precision", prec)
         mlflow.log_metric("Rappel", recall)
         mlflow.log_metric("F1 score", f1)
+
+        # Log encoder & model
+        #        vectorizer_path = "vectorizer.pkl"
+        #        joblib.dump(vectorizer2, vectorizer_path)
+        #        model_path = "gbclassifier.model"
+        #        classifier.save_model(model_path)
+
+        # record signature
+        # Model signature defines the expected format for model inputs and outputs
+        # including any additional parameters needed for inference.
+        signature = mlflow.models.infer_signature(
+            X_r, classifier.predict(vectorizer2.transform(X_r))
+        )
+
+        # Including an input example while logging a model offers benefit
+        # https://mlflow.org/docs/latest/model/signatures.html#input-example
+
+        # custom model to include preprocessing (vectorizer)
+        mlflow.pyfunc.log_model(
+            "GBClassifier",
+            python_model=ModelWrapper(classifier),
+            #                               artifacts = {
+            #                                   "vectorizer" : vectorizer_path,
+            #                                   "model" : model_path
+            #                               },
+            signature=signature,
+        )
 
         print("Score accuracy train : ", classifier.score(X_train_r, y_train_r))
         print("Score accuracy test : ", classifier.score(X_test_r, y_test_r))

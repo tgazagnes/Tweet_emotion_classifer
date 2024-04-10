@@ -1,0 +1,1 @@
+[('countvectorizer', CountVectorizer()), ('gradientboostingclassifier', GradientBoostingClassifier())]

@@ -2,11 +2,12 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import os
-import numpy as np
+import mlflow
 
 # Import data
 PATH = r"C:\Users\thiba\Documents\Projets data\202402_NLP_emotions\data"
 fichier = "text_test.csv"
+
 
 # Import labels
 target_labels = {
@@ -17,6 +18,12 @@ target_labels = {
     4: "fear",
     5: "surprise",
 }
+
+# import model from registry
+model_name = "Sentiment_classifier_GBC"
+model_version = 4
+model = mlflow.sklearn.load_model(model_uri=f"models:/{model_name}/{model_version}")
+
 
 # Page setting : wide layout
 st.set_page_config(page_title="Analyse de sentiment réseaux sociaux")
@@ -94,9 +101,11 @@ with cell_2:
                 pass
             df = pd.read_csv(filepath, index_col=0)
 
-            # Random à changer pour la pred
-            df["Prédiction"] = np.random.randint(0, 6, len(df))
+            # Test on sample
+            pred = model.predict(df["text"])
+            df["Prédiction"] = pred
 
+            # Prepare data for graphs
             df_count_true = df["label"].value_counts().sort_index()
             df_count_pred = df["Prédiction"].value_counts()
             df_count = pd.concat([df_count_true, df_count_pred], axis=1)

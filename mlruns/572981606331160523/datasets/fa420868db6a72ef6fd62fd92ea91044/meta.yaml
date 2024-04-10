@@ -1,0 +1,7 @@
+digest: 89bcdbb9
+name: dataset
+profile: '{"num_rows": 33344, "num_elements": 33344}'
+schema: '{"mlflow_colspec": [{"type": "string", "name": "text"}]}'
+source: '{"tags": {"mlflow.user": "thiba", "mlflow.source.name": "src/models/train_GBC_2.py",
+  "mlflow.source.type": "LOCAL", "mlflow.source.git.commit": "538da6e0f71680ef61f0ffed18b00f30f39a8452"}}'
+source_type: code

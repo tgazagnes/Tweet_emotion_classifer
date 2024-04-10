@@ -10,16 +10,14 @@ import os
 
 # import from registry
 model_name = "Sentiment_classifier_GBC"
-model_version = 3
-model = mlflow.pyfunc.load_model(model_uri=f"models:/{model_name}/{model_version}")
+model_version = 4
+model = mlflow.sklearn.load_model(model_uri=f"models:/{model_name}/{model_version}")
 
 
 # Import test data
 PATH = r"C:\Users\thiba\Documents\Projets data\202402_NLP_emotions\data"
 fichier = "test_samples/Echantillon_de_test_0.csv"
 df2 = pd.read_csv(os.path.join(PATH, fichier), index_col=0)
-df2 = df2.drop("label", axis=1)
-
 
 # Test on 1 tweet
 # data = ["I am so sad"]
@@ -27,6 +25,7 @@ df2 = df2.drop("label", axis=1)
 # print(model.predict(df))
 
 # Test on sample
-pred = model.predict(df2)
+pred = model.predict(df2["text"])
 df2["Prédiction"] = pred
 df2.to_csv(os.path.join(PATH, "test_predictions", "Prediction.csv"))
+print("Prediction done")

@@ -1,0 +1,14 @@
+aliases: []
+creation_timestamp: 1712753265560
+current_stage: None
+description: ''
+last_updated_timestamp: 1712753265560
+name: Sentiment_classifier_GBC
+run_id: 7ddf4bae158b4882b2c09a500bcbbc0f
+run_link: ''
+source: file:///C:/Users/thiba/Documents/Projets%20data/202402_NLP_emotions/mlruns/572981606331160523/7ddf4bae158b4882b2c09a500bcbbc0f/artifacts/model
+status: READY
+status_message: null
+storage_location: file:///C:/Users/thiba/Documents/Projets%20data/202402_NLP_emotions/mlruns/572981606331160523/7ddf4bae158b4882b2c09a500bcbbc0f/artifacts/model
+user_id: null
+version: 4

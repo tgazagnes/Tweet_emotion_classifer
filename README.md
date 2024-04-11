@@ -33,6 +33,7 @@ Pour entraîner et choisir un modèle pertinent, j'ai utilisé le framework [mlf
     │   ├── __init__.py    <- Makes src a Python module
     │   ├── features       <- Scripts de séparation des données d'entraînement et tests    │   │
     │   ├── models         <- Scripts d'entraînement des modèles trackés avec MLFlow
+    │   ├── streamlit      <- Scripts de création de l'app sur Streamlit    
 
 
 ## Prochaines étapes (à venir)
